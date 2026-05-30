@@ -3,10 +3,17 @@ import discord
 from discord.ext import commands
 import google.generativeai as genai
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+# ===== API KEY =====
+api_key = os.getenv("GOOGLE_API_KEY")
+
+if not api_key:
+    raise Exception("Thiếu GOOGLE_API_KEY trong Railway Variables")
+
+genai.configure(api_key=api_key)
 
 model = genai.GenerativeModel("gemini-2.0-flash")
 
+# ===== DISCORD BOT =====
 intents = discord.Intents.default()
 intents.message_content = True
 
@@ -20,8 +27,13 @@ async def on_ready():
 async def tvyngu(ctx, *, question):
     try:
         response = model.generate_content(question)
-        await ctx.send(response.text[:1900])
+
+        text = response.text if response.text else "Không có phản hồi"
+        await ctx.send(text[:1900])
+
     except Exception as e:
         await ctx.send(f"Lỗi: {e}")
-        
+
+# ===== RUN BOT =====
+
 bot.run(os.getenv("TOKEN"))
